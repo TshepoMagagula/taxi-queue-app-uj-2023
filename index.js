@@ -1,8 +1,15 @@
 import express from "express";
 import * as sqlite from 'sqlite';
 import sqlite3 from 'sqlite3';
+import cors from 'cors';
 
 // use the SQL methods in the API routes below
+import { joinQueue } from "./taxi.sql.js";
+import { leaveQueue } from "./taxi.sql.js";
+import { joinTaxiQueue } from "./taxi.sql.js";
+import { taxiQueueLength} from "./taxi.sql.js";
+import { taxiDepart } from "./taxi.sql.js";
+import { queueLength } from "./taxi.sql.js";
 
 const app = express();
 
@@ -10,6 +17,7 @@ app.use(express.static('public'))
 
 // add middleware to make post routes work
 app.use(express.json());
+app.use(cors())
 
 const PORT = process.env.PORT || 4015;
 
@@ -21,57 +29,40 @@ const  db = await sqlite.open({
 
 
 app.post('/api/passenger/join', async (req, res) => {
-    const queue = await db.all(`SELECT * FROM taxi_queue`);
-    const passenger_queue_count = queue[0].passenger_queue_count;
     
-    const result = await db.run(`UPDATE taxi_queue SET passenger_queue_count = ?`, 
-    passenger_queue_count + 1 );
+    await joinQueue();
 
     res.json({
-        queueCoun : passenger_queue_count 
+        message : 'join queue'
     })
 })
 
 // passenger leaves the queue
 app.post('/api/passenger/leave', async (req, res) => {
 
-    const queue = await db.all(`SELECT * FROM taxi_queue`);
-    const passenger_queue_count = queue[0].passenger_queue_count;
-    
-    const result = await db.run(`UPDATE taxi_queue SET passenger_queue_count = ?`, 
-    passenger_queue_count - 1 );
+    await leaveQueue();
 
     res.json({
-        queueCoun : passenger_queue_count 
+        message : 'leave queue'
     })
 });
 
 app.post('/api/taxi/join', async (req, res) => {
-    
-    const queue = await db.all(`SELECT * FROM taxi_queue`);
-    const taxi_queue_count = queue[0].taxi_queue_count;
 
-    const result = await db.run(`UPDATE taxi_queue SET taxi_queue_count = ?`, 
-    taxi_queue_count + 1 );
+    await joinTaxiQueue();
 
     res.json({
-        queueCoun : passenger_queue_count
+        message : 'join queue'
     })
 });
 
 // Note there needs to be at least 12 people in the queue for the taxi to depart
 app.post('/api/taxi/depart', async (req, res) => {
-    
-    const queue = await db.all(`SELECT * FROM taxi_queue`);
-    const taxi_queue_count = queue[0].taxi_queue_count;
-    const passenger_queue_count = queue[0].passenger_queue_count;
 
-    const result = await db.run(`UPDATE taxi_queue SET taxi_queue_count = ?`, 
-    taxi_queue_count - 1 );
+    await taxiDepart();
 
     res.json({
-        queueCount : passenger_queue_count,
-        queueCountTaxi : taxi_queue_count
+        message : 'taxi depart from queue'
     })
 });
 
@@ -79,22 +70,17 @@ app.post('/api/taxi/depart', async (req, res) => {
 // return the number of people in the queue
 app.get('/api/passenger/queue', async (req, res) => {
     //  return test the API call
-    const queue = await db.all(`SELECT * FROM taxi_queue`);
-    const passenger_queue_count = queue[0].passenger_queue_count;
 
     res.json({
-        queueCount : passenger_queue_count
+        queueCount : await queueLength()
     })
 });
 
 // return the number of taxis in the queue
 app.get('/api/taxi/queue', async (req, res) => {
 
-    const queue = await db.all(`SELECT * FROM taxi_queue`);
-    const taxi_queue_count = queue[0].taxi_queue_count;
-
     res.json({
-        queueCount : taxi_queue_count
+        queueCount : await taxiQueueLength()
     })
 });
 

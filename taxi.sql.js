@@ -13,30 +13,50 @@ let tQueueLength = 0;
 
 export async function joinQueue() {
     // console.log('join queue')
-    passQueueLength += 1;
+    const queue = await db.all(`SELECT * FROM taxi_queue`);
+    const passenger_queue_count = queue[0].passenger_queue_count;
+
+    const result = await db.run(`UPDATE taxi_queue SET passenger_queue_count = ?`, 
+    passenger_queue_count + 1 );
 }
 
 export async function leaveQueue() {
-    if(passQueueLength > 0){
-        passQueueLength -= 1;
+    const queue = await db.all(`SELECT * FROM taxi_queue`);
+    const passenger_queue_count = queue[0].passenger_queue_count;
+    
+    if(passenger_queue_count > 0){
+        const result = await db.run(`UPDATE taxi_queue SET passenger_queue_count = ?`, 
+        passenger_queue_count - 1 );
     }
 }
 
 export async function joinTaxiQueue() {
-    tQueueLength += 1;
+    const queue = await db.all(`SELECT * FROM taxi_queue`);
+    const taxi_queue_count = queue[0].taxi_queue_count;
+
+    const result = await db.run(`UPDATE taxi_queue SET taxi_queue_count = ?`, 
+    taxi_queue_count + 1 );
 }
 
 export async function queueLength() {
-    return (passQueueLength);
+    const queue = await db.all(`SELECT * FROM taxi_queue`);
+    const passenger_queue_count = queue[0].passenger_queue_count;
+    return(passenger_queue_count);
 }
 
 export async function taxiQueueLength() {
-    return (tQueueLength);
+    const queue = await db.all(`SELECT * FROM taxi_queue`);
+    const taxi_queue_count = queue[0].taxi_queue_count;
+    return (taxi_queue_count);
 }
 
-export function taxiDepart() {
-    if(passQueueLength >= 12 && tQueueLength > 0){
-        tQueueLength -= 1;
-        passQueueLength -= 12;
+export async function taxiDepart() {
+    const queue = await db.all(`SELECT * FROM taxi_queue`);
+    const taxi_queue_count = queue[0].taxi_queue_count;
+    const passenger_queue_count = queue[0].passenger_queue_count;
+
+    if(taxi_queue_count > 0 && passenger_queue_count >= 12){
+        const result = await db.run(`UPDATE taxi_queue SET taxi_queue_count = ?, passenger_queue_count = ?`, 
+        taxi_queue_count - 1, passenger_queue_count - 12 );   
     }
 }
