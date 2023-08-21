@@ -8,27 +8,35 @@ const  db = await sqlite.open({
 
 await db.migrate();
 
+let passQueueLength = 0;
+let tQueueLength = 0;
+
 export async function joinQueue() {
     // console.log('join queue')
-
+    passQueueLength += 1;
 }
 
 export async function leaveQueue() {
-    
+    if(passQueueLength > 0){
+        passQueueLength -= 1;
+    }
 }
 
 export async function joinTaxiQueue() {
-   
+    tQueueLength += 1;
 }
 
 export async function queueLength() {
-       
+    return (passQueueLength);
 }
 
 export async function taxiQueueLength() {
-
+    return (tQueueLength);
 }
 
 export function taxiDepart() {
-
+    if(passQueueLength >= 12 && tQueueLength > 0){
+        tQueueLength -= 1;
+        passQueueLength -= 12;
+    }
 }
