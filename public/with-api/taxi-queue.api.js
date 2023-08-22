@@ -4,19 +4,30 @@ document.addEventListener('alpine:init', () => {
 
 		return {
 			version: 'api-1.0',
+			queueLength: 0,
+			queueLengthTaxi: 0,
 
-			/* init() {
+			init() {
 				axios
 					.get('/api/passenger/queue')
 					.then(result => {
 						// an example API call
-						this.queueLength1 = result.data.queueCount
+						this.queueLength = result.data.queueCount
 					});
-			}, */
+
+				axios
+					.get('/api/taxi/queue')
+					.then(result => {
+						// an example API call
+						this.queueLengthTaxi = result.data.queueCount
+					});
+				
+			},
 
 			joinQueue() {
 				axios
 					.post('/api/passenger/join')
+					
 			},
 
 			leaveQueue(){
@@ -29,7 +40,7 @@ document.addEventListener('alpine:init', () => {
 					.post('/api/taxi/join')
 			},
 
-			queueLength(){
+			/* queueLength(){
 				axios
 					.get('/api/passenger/queue')
 					.then(result => {
@@ -45,7 +56,7 @@ document.addEventListener('alpine:init', () => {
 						// an example API call
 						this.taxiQueueLength = result.data.queueCount
 					});
-			},
+			}, */
 
 			taxiDepart(){
 				axios.post('/api/taxi/depart')
